@@ -110,6 +110,11 @@ def get_new_flights(db: Session = Depends(get_db)):
         if airline_str != "Unknown":
             wiki_airline = get_wiki_url(airline_str)
 
+        # FlightRadar24 Link
+        fr24_link = "N/A"
+        if callsign_str != "N/A":
+            fr24_link = f"https://www.flightradar24.com/{callsign_str}"
+
         # Requested Format
         message_text = (
             f"Flight {callsign_str} from {dep} to {arr}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
@@ -122,6 +127,7 @@ def get_new_flights(db: Session = Depends(get_db)):
                 "message": message_text,
                 "aircraft_wiki": wiki_model,
                 "airline_wiki": wiki_airline,
+                "flight_radar_link": fr24_link,
             }
         )
 
