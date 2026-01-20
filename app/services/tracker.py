@@ -24,20 +24,19 @@ class FlightTracker:
         self.adsbdb = AdsbdbClient()
         self.bbox = (LAT_MIN, LAT_MAX, LON_MIN, LON_MAX)
 
-    def run(self):
+    def get_flights(self):
         """
-        Executes the main tracking logic.
+        Fetches and enriches flight data.
 
-        1. Fetches current aircraft states from OpenSky.
-        2. Iterates through each aircraft to fetch additional details (Model, Route) from ADSBDB.
-        3. Prints the enriched flight information to the console.
+        Returns:
+            List[Aircraft]: A list of enriched Aircraft objects.
         """
         print(f"Looking for flights in the bounding box...")
         aircraft_list = self.opensky.get_states(self.bbox)
 
         if not aircraft_list:
             print("No aircraft detected.")
-            return
+            return []
 
         print(f"--- {len(aircraft_list)} aircraft(s) detected ---")
 
@@ -57,4 +56,16 @@ class FlightTracker:
             if "airline" in flight_info:
                 aircraft.airline = flight_info["airline"]
 
+        return aircraft_list
+
+    def run(self):
+        """
+        Executes the main tracking logic (Fetch & Print).
+
+        1. Fetches current aircraft states from OpenSky.
+        2. Iterates through each aircraft to fetch additional details (Model, Route) from ADSBDB.
+        3. Prints the enriched flight information to the console.
+        """
+        aircraft_list = self.get_flights()
+        for aircraft in aircraft_list:
             print(aircraft)
