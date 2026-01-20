@@ -112,8 +112,13 @@ def get_new_flights(db: Session = Depends(get_db)):
         dep_str = get_airport_details(dep_code)
         arr_str = get_airport_details(arr_code)
 
-        alt_str = f"{int(flight.altitude)}m" if flight.altitude is not None else "N/A"
-        heading_val = f"{flight.heading}°" if flight.heading is not None else "N/A"
+        # 1 m = 3.28084 ft
+        alt_str = (
+            f"{int(flight.altitude * 3.28084)}ft"
+            if flight.altitude is not None
+            else "N/A"
+        )
+        heading_val = f"{int(flight.heading)}°" if flight.heading is not None else "N/A"
         # 1 m/s = 1.94384 knots
         speed_knots = (
             int(flight.velocity * 1.94384) if flight.velocity is not None else 0
@@ -135,7 +140,7 @@ def get_new_flights(db: Session = Depends(get_db)):
 
         # Requested Format
         message_text = (
-            f"Flight {callsign_str} from {dep_code} to {arr_code}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
+            f"{callsign_str} ✈️ {dep_code} -> {arr_code} 🧭 {heading_val} at {alt_str}, {speed_knots}kts.\n\n"
             f"Airframe: {airframe} from {airline_str}\n"
             f"Departure: {dep_str}\n"
             f"Arrival: {arr_str}"
