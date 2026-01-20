@@ -19,7 +19,7 @@ def get_new_flights(db: Session = Depends(get_db)):
     results = []
 
     for flight in flights:
-        # 2. Format output (recreating the style from models.py)
+        # 2. Format output
         # Handle N/A logic
         callsign_str = flight.callsign if flight.callsign else "N/A"
         airline_str = flight.airline if flight.airline else "Unknown"
@@ -34,20 +34,36 @@ def get_new_flights(db: Session = Depends(get_db)):
         arr = flight.arrival if flight.arrival else "?"
 
         alt_str = f"{int(flight.altitude)}m" if flight.altitude is not None else "N/A"
-        vel_str = (
-            f"{int(flight.velocity * 3.6)} km/h"
-            if flight.velocity is not None
-            else "N/A"
+        heading_val = f"{flight.heading}°" if flight.heading is not None else "N/A"
+
+        # Conversions
+        # 1 m/s = 1.94384 knots
+        speed_knots = (
+            int(flight.velocity * 1.94384) if flight.velocity is not None else 0
         )
-        heading_str = f"{flight.heading}°" if flight.heading is not None else "N/A"
+
+        # Wikipedia Links (Best effort generation)
+        wiki_model = "N/A"
+        if airframe != "N/A":
+            safe_model = airframe.replace(" ", "_")
+            wiki_model = f"https://en.wikipedia.org/wiki/{safe_model}"
+
+        wiki_airline = "N/A"
+        if airline_str != "Unknown":
+            safe_airline = airline_str.replace(" ", "_")
+            wiki_airline = f"https://en.wikipedia.org/wiki/{safe_airline}"
+
+        # Requested Format:
+        # "Flight {flight number} from {departure} to {arrival}: {heading} at {altitude}, {speed} (knots).
+        # {aircraft model} from {airline}
+        # {link to wikipedia page of the aircraft model}
+        # {link to wikipedia page of airline}"
 
         formatted_text = (
-            f"✈️  Vol: {callsign_str} ({airline_str})\n"
-            f"    Avion: {airframe} [ICAO: {flight.icao24}]\n"
-            f"    Route: {dep} -> {arr}\n"
-            f"    Cap: {heading_str} | Alt: {alt_str} | Vit: {vel_str}\n"
-            f"    Pays: {flight.origin_country}\n"
-            f"{'-' * 40}"
+            f"Flight {callsign_str} from {dep} to {arr}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
+            f"{airframe} from {airline_str}\n"
+            f"{wiki_model}\n"
+            f"{wiki_airline}"
         )
 
         results.append(
@@ -58,6 +74,9 @@ def get_new_flights(db: Session = Depends(get_db)):
                     "callsign": flight.callsign,
                     "airline": flight.airline,
                     "route": f"{dep} -> {arr}",
+                    "speed_knots": speed_knots,
+                    "wiki_model": wiki_model,
+                    "wiki_airline": wiki_airline,
                 },
             }
         )
