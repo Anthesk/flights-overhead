@@ -1,12 +1,28 @@
 from typing import List, Dict
 from functools import lru_cache
 import requests
+import airportsdata
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.db_models import Flight
 
 app = FastAPI(title="Flights Overhead API")
+
+# Load Airport Data (ICAO keys)
+airports = airportsdata.load("ICAO")
+
+
+def get_airport_details(icao_code: str) -> str:
+    """Returns 'City (Name)' or just the code if not found."""
+    if not icao_code or icao_code == "?" or icao_code == "N/A":
+        return "?"
+
+    apr = airports.get(icao_code)
+    if apr:
+        # e.g. "Paris (Charles de Gaulle International Airport)"
+        return f"{apr['city']} ({apr['name']})"
+    return icao_code
 
 
 @lru_cache(maxsize=1024)
@@ -89,13 +105,15 @@ def get_new_flights(db: Session = Depends(get_db)):
         if not airframe:
             airframe = "N/A"
 
-        dep = flight.departure if flight.departure else "?"
-        arr = flight.arrival if flight.arrival else "?"
+        # Airport Lookup
+        dep_code = flight.departure if flight.departure else "?"
+        arr_code = flight.arrival if flight.arrival else "?"
+
+        dep_str = get_airport_details(dep_code)
+        arr_str = get_airport_details(arr_code)
 
         alt_str = f"{int(flight.altitude)}m" if flight.altitude is not None else "N/A"
         heading_val = f"{flight.heading}°" if flight.heading is not None else "N/A"
-
-        # Conversions
         # 1 m/s = 1.94384 knots
         speed_knots = (
             int(flight.velocity * 1.94384) if flight.velocity is not None else 0
@@ -117,10 +135,11 @@ def get_new_flights(db: Session = Depends(get_db)):
 
         # Requested Format
         message_text = (
-            f"Flight {callsign_str} from {dep} to {arr}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
-            f"{airframe} from {airline_str}"
+            f"Flight {callsign_str} from {dep_code} to {arr_code}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
+            f"Airframe: {airframe} from {airline_str}\n"
+            f"Departure: {dep_str}\n"
+            f"Arrival: {arr_str}"
         )
-
         results.append(
             {
                 "icao24": flight.icao24,
