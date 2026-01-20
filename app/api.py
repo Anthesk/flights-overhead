@@ -114,7 +114,7 @@ def get_new_flights(db: Session = Depends(get_db)):
 
         # 1 m = 3.28084 ft
         alt_str = (
-            f"{int(flight.altitude * 3.28084)}ft"
+            f"{int(flight.altitude * 3.28084):,}ft"
             if flight.altitude is not None
             else "N/A"
         )
