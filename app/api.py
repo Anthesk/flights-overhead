@@ -1,10 +1,69 @@
 from typing import List, Dict
+from functools import lru_cache
+import requests
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.db_models import Flight
 
 app = FastAPI(title="Flights Overhead API")
+
+
+@lru_cache(maxsize=1024)
+def get_wiki_url(query: str) -> str:
+    """
+    Searches Wikipedia for the best matching article.
+    Uses Opensearch first, then full-text search.
+    Falls back to a search result page URL.
+    Results are cached to improve performance.
+    """
+    if not query or query == "N/A" or query == "Unknown":
+        return "N/A"
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "FlightsOverhead/1.0"})
+
+    # 1. Try Opensearch (Good for direct hits/redirects)
+    try:
+        url = "https://en.wikipedia.org/w/api.php"
+        params = {
+            "action": "opensearch",
+            "search": query,
+            "limit": 1,
+            "namespace": 0,
+            "format": "json",
+        }
+        res = session.get(url, params=params, timeout=2)
+        if res.status_code == 200:
+            data = res.json()
+            # data content: [query, [titles], [descriptions], [urls]]
+            if data[3]:
+                return data[3][0]  # Return the direct URL
+    except Exception:
+        pass
+
+    # 2. Try Standard Search (Good for "Embraer EMB-175" -> "Embraer E-Jet family")
+    try:
+        params = {
+            "action": "query",
+            "list": "search",
+            "srsearch": query,
+            "srlimit": 1,
+            "format": "json",
+        }
+        res = session.get(url, params=params, timeout=2)
+        if res.status_code == 200:
+            data = res.json()
+            if data["query"]["search"]:
+                title = data["query"]["search"][0]["title"]
+                safe_title = title.replace(" ", "_")
+                return f"https://en.wikipedia.org/wiki/{safe_title}"
+    except Exception:
+        pass
+
+    # 3. Fallback to Search Page
+    safe_query = query.replace(" ", "+")
+    return f"https://en.wikipedia.org/w/index.php?search={safe_query}"
 
 
 @app.get("/flights")
@@ -42,42 +101,27 @@ def get_new_flights(db: Session = Depends(get_db)):
             int(flight.velocity * 1.94384) if flight.velocity is not None else 0
         )
 
-        # Wikipedia Links (Best effort generation)
+        # Wikipedia Links (Smart Lookup)
         wiki_model = "N/A"
         if airframe != "N/A":
-            safe_model = airframe.replace(" ", "_")
-            wiki_model = f"https://en.wikipedia.org/wiki/{safe_model}"
+            wiki_model = get_wiki_url(airframe)
 
         wiki_airline = "N/A"
         if airline_str != "Unknown":
-            safe_airline = airline_str.replace(" ", "_")
-            wiki_airline = f"https://en.wikipedia.org/wiki/{safe_airline}"
+            wiki_airline = get_wiki_url(airline_str)
 
-        # Requested Format:
-        # "Flight {flight number} from {departure} to {arrival}: {heading} at {altitude}, {speed} (knots).
-        # {aircraft model} from {airline}
-        # {link to wikipedia page of the aircraft model}
-        # {link to wikipedia page of airline}"
-
-        formatted_text = (
+        # Requested Format
+        message_text = (
             f"Flight {callsign_str} from {dep} to {arr}: {heading_val} at {alt_str}, {speed_knots} (knots).\n"
-            f"{airframe} from {airline_str}\n"
-            f"{wiki_model}\n"
-            f"{wiki_airline}"
+            f"{airframe} from {airline_str}"
         )
 
         results.append(
             {
                 "icao24": flight.icao24,
-                "text": formatted_text,
-                "raw": {
-                    "callsign": flight.callsign,
-                    "airline": flight.airline,
-                    "route": f"{dep} -> {arr}",
-                    "speed_knots": speed_knots,
-                    "wiki_model": wiki_model,
-                    "wiki_airline": wiki_airline,
-                },
+                "message": message_text,
+                "aircraft_wiki": wiki_model,
+                "airline_wiki": wiki_airline,
             }
         )
 
