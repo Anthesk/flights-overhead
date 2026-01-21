@@ -79,6 +79,12 @@ Create a `.env` file in the root directory:
 # OpenSky Credentials (Optional but recommended for better rate limits)
 OPENSKY_CLIENT_ID=your_username
 OPENSKY_CLIENT_SECRET=your_password
+
+# Bounding Box (Optional - Defaults to Paris area)
+FLIGHTS_LAT_MIN=49
+FLIGHTS_LAT_MAX=51
+FLIGHTS_LON_MIN=2.5
+FLIGHTS_LON_MAX=3.5
 ```
 
 ## 📡 Usage
