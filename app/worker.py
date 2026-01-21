@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
 from app.db_models import Flight
 from app.services.tracker import FlightTracker
+from app.config import WORKER_START_HOUR, WORKER_END_HOUR
 
 # Ensure tables exist
 Base.metadata.create_all(bind=engine)
@@ -103,12 +104,14 @@ if __name__ == "__main__":
     tracker = FlightTracker()
 
     while True:
-        try:
-            update_flights(tracker)
-            cleanup_stale_flights()
-        except Exception as e:
-            print(f"Worker crashed: {e}")
+        current_hour = datetime.now().hour
+        if WORKER_START_HOUR <= current_hour < WORKER_END_HOUR:
+            try:
+                update_flights(tracker)
+                cleanup_stale_flights()
+            except Exception as e:
+                print(f"Worker crashed: {e}")
 
-        # Sleep 10 minutes (600 seconds)
-        print("Sleeping for 10 minutes...")
-        time.sleep(600)
+            # Sleep 1 minute (60 seconds)
+            print("Sleeping for 1 minute...")
+        time.sleep(60)

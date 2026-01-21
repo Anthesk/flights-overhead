@@ -10,3 +10,7 @@ LON_MAX = float(os.getenv("FLIGHTS_LON_MAX", 3.5))
 OPENSKY_BASE_URL = "https://opensky-network.org/api"
 OPENSKY_AUTH_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
 ADSBDB_BASE_URL = "https://api.adsbdb.com/v0"
+
+# Worker Settings
+WORKER_START_HOUR = int(os.getenv("WORKER_START_HOUR", 7))
+WORKER_END_HOUR = int(os.getenv("WORKER_END_HOUR", 23))
