@@ -87,6 +87,11 @@ FLIGHTS_LAT_MIN=49
 FLIGHTS_LAT_MAX=51
 FLIGHTS_LON_MIN=2.5
 FLIGHTS_LON_MAX=3.5
+
+# Worker Configuration (Optional)
+WORKER_START_HOUR=7        # Worker starts at 7 AM
+WORKER_END_HOUR=23         # Worker stops at 11 PM
+WORKER_FREQUENCY=60        # Worker runs every 60 seconds
 ```
 
 ## 📡 Usage
