@@ -13,6 +13,7 @@ services:
       - "5432:5432"
 
   api:
+    image: ghcr.io/anthesk/flights-overhead:latest
     build: .
     command: uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload
     volumes:
@@ -27,6 +28,7 @@ services:
       - db
 
   worker:
+    image: ghcr.io/anthesk/flights-overhead:latest
     build: .
     command: python3 -m app.worker
     volumes:

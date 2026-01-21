@@ -1,6 +1,6 @@
 # Flights Overhead
 
-A specialized flight tracking system that monitors aircraft in a specific bounding box and serves fresh flight data via a REST API. It uses OpenSky Network and ADSBDB for data enrichment.
+A flight tracking system that monitors aircraft in a specific bounding box and serves fresh flight data via a REST API. It uses OpenSky Network and ADSBDB for data enrichment.
 
 ## 🚀 Features
 
@@ -57,6 +57,19 @@ The system consists of two main components running in parallel:
     ```bash
     uvicorn app.api:app --reload
     ```
+
+### Option C: Deployment
+
+1.  **GitHub Action**: Pushing a semver tag `v*.*` will automatically trigger a build of the Docker image.
+2.  **Setup**: Copy [docker-compose.yaml](docker-compose.yaml) and [deploy.sh](deploy.sh).
+3.  **Secrets**: Replace users and passwords in the [docker-compose.yaml](docker-compose.yaml) file with new values.
+4.  **Configuration**: See [Configuration](#%EF%B8%8F-configuration).
+5.  **Deployment**:
+    Run the deployment script:
+    ```bash
+    ./deploy.sh
+    ```
+    This script will pull the latest images, rebuild the containers, and restart the services.
 
 ## ⚙️ Configuration
 
