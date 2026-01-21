@@ -14,3 +14,4 @@ ADSBDB_BASE_URL = "https://api.adsbdb.com/v0"
 # Worker Settings
 WORKER_START_HOUR = int(os.getenv("WORKER_START_HOUR", 7))
 WORKER_END_HOUR = int(os.getenv("WORKER_END_HOUR", 23))
+WORKER_FREQUENCY = int(os.getenv("WORKER_FREQUENCY", 60))

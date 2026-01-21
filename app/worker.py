@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
 from app.db_models import Flight
 from app.services.tracker import FlightTracker
-from app.config import WORKER_START_HOUR, WORKER_END_HOUR
+from app.config import WORKER_START_HOUR, WORKER_END_HOUR, WORKER_FREQUENCY
 
 # Ensure tables exist
 Base.metadata.create_all(bind=engine)
@@ -112,6 +112,11 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Worker crashed: {e}")
 
-            # Sleep 1 minute (60 seconds)
-            print("Sleeping for 1 minute...")
-        time.sleep(60)
+            # Sleep configured frequency
+            print(f"Sleeping for {WORKER_FREQUENCY} seconds...")
+        else:
+            print(
+                f"[{datetime.now()}] Outside working hours ({WORKER_START_HOUR}-{WORKER_END_HOUR}), sleeping..."
+            )
+
+        time.sleep(WORKER_FREQUENCY)
