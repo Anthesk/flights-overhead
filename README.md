@@ -2,6 +2,8 @@
 
 A flight tracking system that monitors aircraft in a specific bounding box and serves fresh flight data via a REST API. It uses OpenSky Network and ADSBDB for data enrichment.
 
+You can then connect its API to a Discord bot for example, and get info about all the flights passing over your house, quasi-live !
+
 ## 🚀 Features
 
 - **Real-time Monitoring**: Tracks aircraft within a configurable geographical zone.
