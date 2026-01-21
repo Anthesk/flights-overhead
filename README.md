@@ -107,12 +107,10 @@ curl http://localhost:8000/flights
   "flights": [
     {
       "icao24": "4d2288",
-      "text": "✈️  Vol: RYR767Z (Ryanair)\n    Avion: Boeing 737NG 8AS/W...\n...",
-      "raw": {
-        "callsign": "RYR767Z",
-        "airline": "Ryanair",
-        "route": "EGSS -> LIRA"
-      }
+      "message": "➖➖➖➖➖➖➖➖➖➖\n✈️ [RYR767Z](<https://www.flightradar24.com/RYR767Z>) ✈️\n➖➖➖➖➖➖➖➖➖➖\n🛫 EGSS ➡️ 🛬 LIRA\n🧭 135° | 📏 32,000ft | 💨 450kts\n➖➖➖➖➖➖➖➖➖➖\n🛩️  [Boeing 737-800](<https://en.wikipedia.org/wiki/Boeing_737>)\n🏢  [Ryanair](<https://en.wikipedia.org/wiki/Ryanair>)\n🌍 From: London (Stansted Airport)\n📍 To:   Rome (Ciampino–G. B. Pastine International Airport)",
+      "aircraft_wiki": "https://en.wikipedia.org/wiki/Boeing_737",
+      "airline_wiki": "https://en.wikipedia.org/wiki/Ryanair",
+      "flight_radar_link": "https://www.flightradar24.com/RYR767Z"
     }
   ]
 }
