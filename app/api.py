@@ -141,7 +141,7 @@ def get_new_flights(db: Session = Depends(get_db)):
         # Requested Format
         message_text = (
             f"➖➖➖➖➖➖➖➖➖➖\n"
-            f"✈️ {callsign_str} ✈️\n"
+            f"✈️ [{callsign_str}](<{fr24_link}>) ✈️\n"
             f"➖➖➖➖➖➖➖➖➖➖\n"
             f"🛫 {dep_code} ➡️ 🛬 {arr_code}\n"
             f"🧭 {heading_val} | 📏 {alt_str} | 💨 {speed_knots}kts\n"
