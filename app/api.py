@@ -138,19 +138,50 @@ def get_new_flights(db: Session = Depends(get_db)):
         if callsign_str != "N/A":
             fr24_link = f"https://www.flightradar24.com/{callsign_str}"
 
-        # Requested Format
-        message_text = (
-            f"➖➖➖➖➖➖➖➖➖➖\n"
-            f"✈️ [{callsign_str}](<{fr24_link}>) ✈️\n"
-            f"➖➖➖➖➖➖➖➖➖➖\n"
-            f"🛫 {dep_code} ➡️ 🛬 {arr_code}\n"
-            f"🧭 {heading_val} | 📏 {alt_str} | 💨 {speed_knots}kts\n"
-            f"➖➖➖➖➖➖➖➖➖➖\n"
-            f"🛩️  [{airframe}](<{wiki_model}>)\n"
-            f"🏢  [{airline_str}](<{wiki_airline}>)\n"
-            f"🌍 From: {dep_str}\n"
-            f"📍 To:   {arr_str}"
-        )
+        # Requested Format (Conditional)
+        msg_lines = []
+        msg_lines.append("➖➖➖➖➖➖➖➖➖➖")
+
+        # Callsign
+        if callsign_str != "N/A":
+            msg_lines.append(f"✈️ [{callsign_str}](<{fr24_link}>) ✈️")
+        else:
+            msg_lines.append(f"✈️ [Unknown Flight](<{fr24_link}>) ✈️")
+
+        msg_lines.append("➖➖➖➖➖➖➖➖➖➖")
+
+        # Route
+        if dep_code != "?" or arr_code != "?":
+            msg_lines.append(f"🛫 {dep_code} ➡️ 🛬 {arr_code}")
+
+        # Telemetry
+        telemetry = []
+        if heading_val != "N/A":
+            telemetry.append(f"🧭 {heading_val}")
+        if alt_str != "N/A":
+            telemetry.append(f"📏 {alt_str}")
+        if speed_knots > 0:
+            telemetry.append(f"💨 {speed_knots}kts")
+
+        if telemetry:
+            msg_lines.append(" | ".join(telemetry))
+            msg_lines.append("➖➖➖➖➖➖➖➖➖➖")
+
+        # Aircraft
+        if airframe != "N/A":
+            msg_lines.append(f"🛩️  [{airframe}](<{wiki_model}>)")
+
+        # Airline
+        if airline_str != "Unknown":
+            msg_lines.append(f"🏢  [{airline_str}](<{wiki_airline}>)")
+
+        # Full Airports
+        if dep_str != "?":
+            msg_lines.append(f"🌍 From: {dep_str}")
+        if arr_str != "?":
+            msg_lines.append(f"📍 To:   {arr_str}")
+
+        message_text = "\n".join(msg_lines)
         results.append(
             {
                 "icao24": flight.icao24,

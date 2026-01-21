@@ -79,11 +79,6 @@ Create a `.env` file in the root directory:
 # OpenSky Credentials (Optional but recommended for better rate limits)
 OPENSKY_CLIENT_ID=your_username
 OPENSKY_CLIENT_SECRET=your_password
-
-# Database URL
-# For Docker: postgresql://user:password@db:5432/flights
-# For Local: sqlite:///flights.db
-DATABASE_URL=sqlite:///flights.db
 ```
 
 ## 📡 Usage
