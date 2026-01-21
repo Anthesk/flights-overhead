@@ -140,10 +140,16 @@ def get_new_flights(db: Session = Depends(get_db)):
 
         # Requested Format
         message_text = (
-            f"{callsign_str} ✈️ {dep_code} -> {arr_code} 🧭 {heading_val} at {alt_str}, {speed_knots}kts.\n\n"
-            f"Airframe: {airframe} from {airline_str}\n"
-            f"Departure: {dep_str}\n"
-            f"Arrival: {arr_str}"
+            f"➖➖➖➖➖➖➖➖➖➖\n"
+            f"✈️ {callsign_str} ✈️\n"
+            f"➖➖➖➖➖➖➖➖➖➖\n"
+            f"🛫 {dep_code} ➡️ 🛬 {arr_code}\n"
+            f"🧭 {heading_val} | 📏 {alt_str} | 💨 {speed_knots}kts\n"
+            f"➖➖➖➖➖➖➖➖➖➖\n"
+            f"🛩️  [{airframe}](<{wiki_model}>)\n"
+            f"🏢  [{airline_str}](<{wiki_airline}>)\n"
+            f"🌍 From: {dep_str}\n"
+            f"📍 To:   {arr_str}"
         )
         results.append(
             {
