@@ -20,6 +20,8 @@ class OpenSkyClient:
         """
         self.client_id = client_id
         self.client_secret = client_secret
+        self.token = None
+        self.token_expiry = 0
         self.session = requests.Session()
         self._authenticate()
 
@@ -44,14 +46,44 @@ class OpenSkyClient:
             if response.status_code == 200:
                 data = response.json()
                 token = data.get("access_token")
+                expires_in = data.get("expires_in", 3600)
                 if token:
+                    self.token = token
+                    # Set expiry time with a 60-second safety margin
+                    self.token_expiry = time.time() + expires_in - 60
                     self.session.headers.update({"Authorization": f"Bearer {token}"})
+                    print("Successfully authenticated with OpenSky.")
+                else:
+                    self.token = None
+                    self.token_expiry = 0
+                    print("OpenSky authentication failure: No access token in response.")
+                    self.session.headers.pop("Authorization", None)
             else:
+                self.token = None
+                self.token_expiry = 0
                 print(
-                    f"OpenSky authentication failure: {response.status_code} - {response.text}"
+                    f"WARNING: OpenSky API credentials are invalid (Status {response.status_code}). "
+                    f"Falling back to anonymous mode with severely restricted rate limits. "
+                    f"Error: {response.text}"
                 )
+                self.session.headers.pop("Authorization", None)
         except Exception as e:
+            self.token = None
+            self.token_expiry = 0
             print(f"OpenSky authentication error: {e}")
+            self.session.headers.pop("Authorization", None)
+
+    def _ensure_authenticated(self):
+        """
+        Ensures we have a valid auth token if credentials are provided.
+        Re-authenticates if the token is close to expiry or not yet obtained.
+        """
+        if not self.client_id or not self.client_secret:
+            return
+
+        if not self.token or time.time() >= self.token_expiry:
+            print("Token expired or missing. Re-authenticating with OpenSky...")
+            self._authenticate()
 
     def get_states(self, bbox: Tuple[float, float, float, float]) -> List[Aircraft]:
         """
@@ -63,6 +95,7 @@ class OpenSkyClient:
         Returns:
             List[Aircraft]: A list of Aircraft objects representing the flights in the area.
         """
+        self._ensure_authenticated()
         url = f"{OPENSKY_BASE_URL}/states/all"
         params = {
             "lamin": bbox[0],
@@ -73,6 +106,16 @@ class OpenSkyClient:
 
         try:
             response = self.session.get(url, params=params, timeout=10)
+            
+            # If we get a 401 Unauthorized and have credentials, our token might have expired.
+            # We try to re-authenticate once and retry.
+            if response.status_code == 401 and self.client_id and self.client_secret:
+                print("OpenSky request returned 401 Unauthorized. Retrying authentication...")
+                self.token = None
+                self.token_expiry = 0
+                self._ensure_authenticated()
+                response = self.session.get(url, params=params, timeout=10)
+
             if response.status_code != 200:
                 print(f"OpenSky States API error: {response.status_code}")
                 return []
