@@ -34,6 +34,8 @@ The system consists of two main components running in parallel:
 
 ### Option A: Docker (Recommended)
 
+You will need a personal access token from Github (PAT).
+
 1.  **Clone the repository**
 2.  **Configure Environment**
     Create a `.env` file (see Configuration section).
